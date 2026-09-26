@@ -1,0 +1,17 @@
+{"revision": "baseline", "pidRecord": "daemon.pid", "shape": "plain", "exitCode": 0, "result": "calls=[\"version\", \"restart\"] expected=[\"version\", \"restart\"] passed=true"}
+{"revision": "baseline", "pidRecord": "daemon.pid", "shape": "symlink", "exitCode": 1, "result": "calls=[\"version\"] expected=[\"version\", \"restart\"] passed=false"}
+{"revision": "baseline", "pidRecord": "daemon.pid", "shape": "resolved-symlink", "exitCode": 1, "result": "calls=[\"version\"] expected=[\"version\", \"restart\"] passed=false"}
+{"revision": "baseline", "pidRecord": "daemon.pid", "shape": "other-home-symlink", "exitCode": 0, "result": "calls=[\"version\"] expected=[\"version\"] passed=true"}
+{"revision": "baseline", "pidRecord": "app-server.pid", "shape": "plain", "exitCode": 0, "result": "calls=[\"version\", \"restart\"] expected=[\"version\", \"restart\"] passed=true"}
+{"revision": "baseline", "pidRecord": "app-server.pid", "shape": "symlink", "exitCode": 1, "result": "calls=[\"version\"] expected=[\"version\", \"restart\"] passed=false"}
+{"revision": "baseline", "pidRecord": "app-server.pid", "shape": "resolved-symlink", "exitCode": 1, "result": "calls=[\"version\"] expected=[\"version\", \"restart\"] passed=false"}
+{"revision": "baseline", "pidRecord": "app-server.pid", "shape": "other-home-symlink", "exitCode": 0, "result": "calls=[\"version\"] expected=[\"version\"] passed=true"}
+{"revision": "candidate", "pidRecord": "daemon.pid", "shape": "plain", "exitCode": 0, "result": "calls=[\"version\", \"restart\"] expected=[\"version\", \"restart\"] passed=true"}
+{"revision": "candidate", "pidRecord": "daemon.pid", "shape": "symlink", "exitCode": 0, "result": "calls=[\"version\", \"restart\"] expected=[\"version\", \"restart\"] passed=true"}
+{"revision": "candidate", "pidRecord": "daemon.pid", "shape": "resolved-symlink", "exitCode": 0, "result": "calls=[\"version\", \"restart\"] expected=[\"version\", \"restart\"] passed=true"}
+{"revision": "candidate", "pidRecord": "daemon.pid", "shape": "other-home-symlink", "exitCode": 0, "result": "calls=[\"version\"] expected=[\"version\"] passed=true"}
+{"revision": "candidate", "pidRecord": "app-server.pid", "shape": "plain", "exitCode": 0, "result": "calls=[\"version\", \"restart\"] expected=[\"version\", \"restart\"] passed=true"}
+{"revision": "candidate", "pidRecord": "app-server.pid", "shape": "symlink", "exitCode": 0, "result": "calls=[\"version\", \"restart\"] expected=[\"version\", \"restart\"] passed=true"}
+{"revision": "candidate", "pidRecord": "app-server.pid", "shape": "resolved-symlink", "exitCode": 0, "result": "calls=[\"version\", \"restart\"] expected=[\"version\", \"restart\"] passed=true"}
+{"revision": "candidate", "pidRecord": "app-server.pid", "shape": "other-home-symlink", "exitCode": 0, "result": "calls=[\"version\"] expected=[\"version\"] passed=true"}
+{"baselineFailures": 4, "candidateFailures": 0, "scenariosPerRevision": 8, "durationSeconds": 2.7}
