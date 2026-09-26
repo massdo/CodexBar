@@ -1,0 +1,94 @@
+name: Codex socket symlink validation
+
+on:
+  push:
+    branches: [validation/codex-daemon-socket]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codex-socket-symlink-validation
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: macos-26
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard-index: [0, 1]
+    env:
+      CODEXBAR_SUPPRESS_TEST_KEYCHAIN_ACCESS: 1
+      CODEXBAR_TEST_CODEX_FILE_ISOLATION: 1
+      CODEXBAR_TEST_SESSION_FILE_ISOLATION: 1
+      CODEXBAR_TEST_SHARD_INDEX: ${{ matrix.shard-index }}
+      CODEXBAR_TEST_SHARD_COUNT: 2
+      CODEXBAR_TEST_GROUP_SIZE: 8
+      CODEXBAR_TEST_SUITE_TIMEOUT: 120
+      CODEXBAR_TEST_RETRY_NON_TIMEOUT_FAILURES: 0
+      BASE_SHA: b4f88401a3acfbca133ad584c9c48da48aaf351e
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 3
+      - name: Select the repository's Xcode version
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app/Contents/Developer
+          xcodebuild -version
+          swift --version
+      - name: Restore SwiftPM cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            .build
+            ~/Library/Caches/org.swift.swiftpm
+          key: socket-proof-macos26-${{ matrix.shard-index }}-${{ hashFiles('Package.resolved', 'Package.swift') }}
+      - name: Reproduce the regression before the fix
+        if: matrix.shard-index == 0
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_path=Sources/CodexBar/CodexAppServerDaemon.swift
+          cp "$source_path" "$RUNNER_TEMP/fixed-daemon.swift"
+          trap 'cp "$RUNNER_TEMP/fixed-daemon.swift" "$source_path"' EXIT
+          git show "$BASE_SHA:$source_path" > "$source_path"
+          set +e
+          swift test --jobs 4 --filter CodexAppServerDaemonTests > "$RUNNER_TEMP/socket-red.log" 2>&1
+          result=$?
+          set -e
+          tail -90 "$RUNNER_TEMP/socket-red.log"
+          test "$result" -ne 0
+          failures=$(grep -c 'Expectation failed:.*calls' "$RUNNER_TEMP/socket-red.log" || true)
+          test "$failures" -eq 4
+          printf 'Original guard: four expected symlink regression failures.\n' >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify the corrected promotion tests
+        if: matrix.shard-index == 0
+        shell: bash
+        run: |
+          set -euo pipefail
+          swift test --jobs 4 --filter CodexAppServerDaemonTests 2>&1 | tee "$RUNNER_TEMP/socket-green.log"
+      - name: Run the full repository test shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          make test 2>&1 | tee "$RUNNER_TEMP/full-tests.log"
+      - name: Run repository quality checks
+        if: matrix.shard-index == 0
+        shell: bash
+        run: |
+          set -euo pipefail
+          make check 2>&1 | tee "$RUNNER_TEMP/quality-checks.log"
+          git diff --exit-code
+      - name: Retain validation logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: socket-validation-shard-${{ matrix.shard-index }}
+          path: |
+            ${{ runner.temp }}/socket-red.log
+            ${{ runner.temp }}/socket-green.log
+            ${{ runner.temp }}/full-tests.log
+            ${{ runner.temp }}/quality-checks.log
+          retention-days: 14
